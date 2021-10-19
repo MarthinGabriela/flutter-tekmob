@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "788716472817",
+    "project_id": "stockit-backend-54d3b",
+    "storage_bucket": "stockit-backend-54d3b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:788716472817:android:cf167a3c12f1bbedf15c50",
+        "android_client_info": {
+          "package_name": "com.commy.stockit"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "788716472817-g9058tae131geee066oo6tf7acu57qip.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBfQ-XGby8rrK80ALq5OcIsT12h08rOI84"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "788716472817-g9058tae131geee066oo6tf7acu57qip.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
