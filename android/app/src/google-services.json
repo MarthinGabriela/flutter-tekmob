@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:788716472817:android:cf167a3c12f1bbedf15c50",
+        "mobilesdk_app_id": "1:788716472817:android:fd6e73c4146e5de9f15c50",
         "android_client_info": {
-          "package_name": "com.commy.stockit"
+          "package_name": "com.example.tekmob"
         }
       },
       "oauth_client": [
