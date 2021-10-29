@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:tekmob/screens/sign/login.dart';
+import 'package:tekmob/screens/sign/register.dart';
 
 class Splash extends StatefulWidget {
   const Splash({Key? key}) : super(key: key);
@@ -27,7 +29,7 @@ class _SplashState extends State<Splash> {
                 Container(
                   width: 150,
                   child: const Image(
-                    image: AssetImage('assets/crypto_logo.png'),
+                    image: AssetImage('assets/crypto_logo_w.png'),
                   ),
                 ),
                 const SizedBox(
@@ -48,13 +50,13 @@ class _SplashState extends State<Splash> {
                           fontFamily: "Quicksand",
                         ))),
                 SizedBox(
-                  height: 120,
+                  height: 220,
                 ),
                 Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Container(
-                        margin: EdgeInsets.all(25),
+                        margin: EdgeInsets.all(24),
                         child: TextButton(
                           child: Text('Login',
                               style: const TextStyle(
@@ -66,24 +68,31 @@ class _SplashState extends State<Splash> {
                               backgroundColor:
                                   MaterialStateProperty.all(Colors.white)),
                           onPressed: () {
-                            Navigator.pushNamed(context, "/login");
+                            Navigator.push(
+                                context,
+                                new MaterialPageRoute(
+                                    builder: (context) => new Login()));
                           },
                         ),
                       ),
                       Container(
-                        margin: EdgeInsets.all(25),
+                        margin: EdgeInsets.all(24),
                         child: TextButton(
-                          child: Text('Sign Up',
-                              style: const TextStyle(
-                                // letterSpacing: 2,
-                                fontSize: 20,
-                                fontFamily: "Quicksand",
-                              )),
-                          style: ButtonStyle(
-                              backgroundColor:
-                                  MaterialStateProperty.all(Colors.white)),
-                          onPressed: () {},
-                        ),
+                            child: Text('Sign Up',
+                                style: const TextStyle(
+                                  // letterSpacing: 2,
+                                  fontSize: 20,
+                                  fontFamily: "Quicksand",
+                                )),
+                            style: ButtonStyle(
+                                backgroundColor:
+                                    MaterialStateProperty.all(Colors.white)),
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  new MaterialPageRoute(
+                                      builder: (context) => new SignUp()));
+                            }),
                       ),
                     ]),
                 Text("Privacy Policy",
