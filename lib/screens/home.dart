@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:tekmob/auth/auth.dart';
 import 'package:tekmob/elements/box_events.dart';
+import 'package:tekmob/screens/outbound/outbound_home.dart';
 import 'package:tekmob/screens/wrapper_home.dart';
 import 'package:tekmob/theme.dart';
 import 'package:tekmob/elements/button_login_logout.dart';
@@ -43,7 +44,7 @@ class _HomeState extends State<Home> {
                 SizedBox(height: 15),
                 Center(
                     child: Text("Dapur Utara",
-                        style: header_4.copyWith(color: purpleDark))),
+                        style: header_5.copyWith(color: purpleDark))),
                 SizedBox(height: 75),
                 Container(
                     child: Row(
@@ -67,7 +68,12 @@ class _HomeState extends State<Home> {
                     Ink(
                       color: Colors.white,
                       child: InkWell(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              new MaterialPageRoute(
+                                  builder: (context) => new OutboundHome()));
+                        },
                         child: BoxEvent(
                             text: "Outbound",
                             iconEvents: Image(
@@ -128,7 +134,10 @@ class _HomeState extends State<Home> {
                                 new MaterialPageRoute(
                                     builder: (context) => new WrapperHome()));
                           },
-                          child: WideButton(buttonText: "Log Out")),
+                          child: WideButton(
+                            buttonText: "Log Out",
+                            colorSide: "Dark",
+                          )),
                     )),
               ],
             ))));

@@ -16,7 +16,8 @@ TextStyle header_2 = TextStyle(
   letterSpacing: 3,
 );
 TextStyle header_3 = TextStyle(fontWeight: FontWeight.w700, fontSize: 36);
-TextStyle header_4 = TextStyle(fontWeight: FontWeight.w400, fontSize: 24);
+TextStyle header_4 = TextStyle(fontWeight: FontWeight.w600, fontSize: 32);
+TextStyle header_5 = TextStyle(fontWeight: FontWeight.w400, fontSize: 26);
 TextStyle normalText = TextStyle(fontSize: 18);
 TextStyle smallerText = TextStyle(fontSize: 14);
 

@@ -3,7 +3,8 @@ import 'package:tekmob/theme.dart';
 
 class WideButton extends StatelessWidget {
   final String buttonText;
-  const WideButton({required this.buttonText});
+  final String colorSide;
+  const WideButton({required this.buttonText, required this.colorSide});
 
   @override
   Widget build(BuildContext context) {
@@ -14,14 +15,12 @@ class WideButton extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-              color: buttonText == 'Log Out'
-                  ? Colors.black
-                  : Colors.grey.shade300),
-          color: buttonText == 'Log Out' ? Colors.white : purpleDark,
+              color: colorSide == 'Dark' ? Colors.black : Colors.grey.shade300),
+          color: colorSide == 'Dark' ? Colors.white : purpleDark,
         ),
         child: Text(buttonText,
             style: normalText.copyWith(
-              color: buttonText == 'Log Out' ? purpleDark : Color(0xFFFFFFFF),
+              color: colorSide == 'Dark' ? purpleDark : Color(0xFFFFFFFF),
               fontFamily: "OpenSans",
             )));
   }

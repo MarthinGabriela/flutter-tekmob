@@ -99,7 +99,7 @@ class _LoginState extends State<Login> {
                         Container(
                           margin: EdgeInsets.fromLTRB(32, 0, 0, 0),
                           child: Text("Email",
-                              style: header_4.copyWith(
+                              style: header_5.copyWith(
                                   color: blueDark, fontFamily: 'OpenSans')),
                         ),
                         Container(
@@ -119,12 +119,12 @@ class _LoginState extends State<Login> {
                               )),
                         ),
                         SizedBox(
-                          height: 30,
+                          height: 32,
                         ),
                         Container(
                           margin: EdgeInsets.fromLTRB(32, 0, 0, 0),
                           child: Text("Password",
-                              style: header_4.copyWith(
+                              style: header_5.copyWith(
                                   color: blueDark, fontFamily: 'OpenSans')),
                         ),
                         Container(
@@ -169,7 +169,9 @@ class _LoginState extends State<Login> {
                                       }
                                     }
                                   },
-                                  child: WideButton(buttonText: "Log In")),
+                                  child: WideButton(
+                                      buttonText: "Log In",
+                                      colorSide: "Light")),
                             )),
                         Center(
                           child: Text(error,

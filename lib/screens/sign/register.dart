@@ -185,7 +185,9 @@ class _SignUpState extends State<SignUp> {
                                         }
                                       }
                                     },
-                                    child: WideButton(buttonText: "Sign Up")),
+                                    child: WideButton(
+                                        buttonText: "Sign Up",
+                                        colorSide: "Light")),
                               )),
                           SizedBox(height: 8),
                           Text(error,
