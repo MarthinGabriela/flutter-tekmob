@@ -1,56 +1,153 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:tekmob/auth/auth.dart';
+import 'package:tekmob/elements/button_socmed.dart';
 import 'package:tekmob/theme.dart';
 import 'package:tekmob/elements/button_login_logout.dart';
 
 class OutboundHome extends StatefulWidget {
-  const OutboundHome({Key? key}) : super(key: key);
+  final String uid;
+
+  const OutboundHome({required this.uid});
 
   @override
   _OutboundHomeState createState() => _OutboundHomeState();
 }
 
 class _OutboundHomeState extends State<OutboundHome> {
-  final formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
 
   String title = "";
   String description = "";
   String destination = "";
+  String ean_id = "";
+  String qty = "";
   // String item = "";
 
-  Future<void> showAddItem(BuildContext context) async {
-    return await showDialog(
+  Future<Future<AlertDialog?>> showAddItem(BuildContext context) async {
+    return showDialog<AlertDialog>(
         context: context,
-        builder: (context) {
-          return AlertDialog(content: Text("hahahahahahahahaha"),
-              // Form(
-              //     key: formKey,
-              //     child: Row(
-              //         mainAxisAlignment: MainAxisAlignment.start,
-              //         children: <Widget>[
-              //           Container(
-              //               child: Column(
-              //                   mainAxisAlignment: MainAxisAlignment.start,
-              //                   children: <Widget>[
-              //                 Text("EAN ID",
-              //                     style: normalText.copyWith(
-              //                         fontFamily: "OpenSans",
-              //                         fontWeight: FontWeight.w800,
-              //                         color: purpleDark)),
-              //               ])),
-              //           SizedBox(width: 16),
-              //           Container(child: Column()),
-              //         ])),
-              actions: <Widget>[
-                TextButton(
-                  child: Text('CLOSE'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    // Navigator.pushNamed(context, "/");
-                  },
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Form(
+                // key: _formKey,
+                child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: <Widget>[
+                        Container(
+                            margin: EdgeInsets.fromLTRB(0, 0, 24, 0),
+                            child: Column(
+                                // mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: <Widget>[
+                                  Text("EAN ID",
+                                      style: normalText.copyWith(
+                                          fontFamily: "OpenSans",
+                                          fontWeight: FontWeight.w800,
+                                          color: purpleDark)),
+                                  Container(
+                                      width: 144,
+                                      child: TextFormField(
+                                        style: TextStyle(
+                                            color: blueDark,
+                                            fontFamily: 'OpenSans'),
+                                        decoration: inputFormDecor,
+                                        onChanged: (val) {
+                                          setState(() => ean_id = val);
+                                        },
+                                      ))
+                                ])),
+                        SizedBox(width: 16),
+                        Container(
+                            child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: <Widget>[
+                              Text("QTY",
+                                  style: normalText.copyWith(
+                                      fontFamily: "OpenSans",
+                                      fontWeight: FontWeight.w800,
+                                      color: purpleDark)),
+                              Container(
+                                  width: 64,
+                                  child: TextFormField(
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: <TextInputFormatter>[
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp(r'[0-9]')),
+                                    ],
+                                    style: TextStyle(
+                                        color: blueDark,
+                                        fontFamily: 'OpenSans'),
+                                    decoration: inputFormDecor,
+                                    onChanged: (val) {
+                                      setState(() => qty = val);
+                                    },
+                                  ))
+                            ])),
+                      ]),
+                ),
+                SizedBox(
+                  height: 32,
+                ),
+                Container(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade300),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.05),
+                              spreadRadius: 3,
+                              blurRadius: 2,
+                              offset:
+                                  Offset(0, 2), // changes position of shadow
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          icon: Image.asset('assets/barcode_icon.png'),
+                          iconSize: 16,
+                          onPressed: () {},
+                        ),
+                      ),
+                      SizedBox(width: 132),
+                      TextButton(
+                        child: Text('Add Item'),
+                        style: TextButton.styleFrom(
+                          primary: Colors.white,
+                          backgroundColor: blueViolet,
+                          onSurface: Colors.grey,
+                        ),
+                        onPressed: () {
+                          print(ean_id + " " + qty);
+                          Navigator.of(context).pop();
+                          print(ean_id + "+++++++++++++++++++" + qty);
+                          // print('Pressed');
+                        },
+                      )
+                    ],
+                  ),
                 )
-              ]);
+              ],
+            )),
+            // actions: <Widget>[]
+          );
+          // TextButton(
+          //   child: Text('Add Item'),
+          //   onPressed: () {
+          //     Navigator.of(context).pop();
+          //     // Navigator.pushNamed(context, "/");
+          //   },
+          // )
         });
   }
 
@@ -95,7 +192,7 @@ class _OutboundHomeState extends State<OutboundHome> {
                   height: 32,
                 ),
                 Form(
-                    key: formKey,
+                    key: _formKey,
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
@@ -166,6 +263,9 @@ class _OutboundHomeState extends State<OutboundHome> {
                                 // color: purpleDark,
                                 child: InkWell(
                                     onTap: () async {
+                                      print(widget.uid);
+                                      // await Future.delayed(
+                                      //     Duration(seconds: 1));
                                       await showAddItem(context);
                                     },
                                     child: WideButton(

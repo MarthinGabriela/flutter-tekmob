@@ -9,7 +9,9 @@ import 'package:tekmob/elements/button_login_logout.dart';
 import 'package:tekmob/elements/button_socmed.dart';
 
 class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+  final String uid;
+
+  const Home({required this.uid});
 
   @override
   _HomeState createState() => _HomeState();
@@ -69,10 +71,15 @@ class _HomeState extends State<Home> {
                       color: Colors.white,
                       child: InkWell(
                         onTap: () {
-                          Navigator.push(
-                              context,
-                              new MaterialPageRoute(
-                                  builder: (context) => new OutboundHome()));
+                          // Navigator.push(
+                          //     context,
+                          //     new MaterialPageRoute(
+                          //         builder: (context) => new OutboundHome()));
+
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => OutboundHome(
+                                    uid: widget.uid,
+                                  )));
                         },
                         child: BoxEvent(
                             text: "Outbound",
@@ -109,6 +116,7 @@ class _HomeState extends State<Home> {
                       child: InkWell(
                         onTap: () {
                           // print("lmoa");
+                          print(widget.uid);
                         },
                         child: BoxEvent(
                             text: "Inventory",

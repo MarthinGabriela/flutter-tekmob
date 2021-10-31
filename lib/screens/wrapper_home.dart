@@ -10,14 +10,14 @@ class WrapperHome extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = Provider.of<UserRepo?>(context);
 
-    print(user);
+    // print(user);
 
     if (user == null) {
-      print("SPLLLLLASSSHUU");
+      // print("SPLLLLLASSSHUU");
       return Splash();
     } else {
-      print("HOMEEEEE");
-      return Home();
+      // print("HOMEEEEE");
+      return Home(uid: user.uid);
     }
 
     // return Splash();
