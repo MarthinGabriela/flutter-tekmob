@@ -116,7 +116,7 @@ class _HomeState extends State<Home> {
                       child: InkWell(
                         onTap: () {
                           // print("lmoa");
-                          print(widget.uid);
+                          // print(widget.uid);
                         },
                         child: BoxEvent(
                             text: "Inventory",

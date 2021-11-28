@@ -13,10 +13,8 @@ class WrapperHome extends StatelessWidget {
     // print(user);
 
     if (user == null) {
-      // print("SPLLLLLASSSHUU");
       return Splash();
     } else {
-      // print("HOMEEEEE");
       return Home(uid: user.uid);
     }
 

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,6 +6,7 @@ import 'package:tekmob/auth/auth.dart';
 import 'package:tekmob/elements/button_socmed.dart';
 import 'package:tekmob/theme.dart';
 import 'package:tekmob/elements/button_login_logout.dart';
+import 'package:tekmob/screens/outbound/outbound_addpackage.dart';
 
 class OutboundHome extends StatefulWidget {
   final String uid;
@@ -18,137 +20,34 @@ class OutboundHome extends StatefulWidget {
 class _OutboundHomeState extends State<OutboundHome> {
   final _formKey = GlobalKey<FormState>();
 
-  String title = "";
-  String description = "";
-  String destination = "";
-  String ean_id = "";
-  String qty = "";
+  // String title = "";
+  // String description = "";
+  // String destination = "";
+  // String ean_id = "";
+  // String qty = "";
   // String item = "";
+  String idWarehouse = "";
+  String warehouse = "";
 
-  Future<Future<AlertDialog?>> showAddItem(BuildContext context) async {
-    return showDialog<AlertDialog>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            content: Form(
-                // key: _formKey,
-                child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: <Widget>[
-                        Container(
-                            margin: EdgeInsets.fromLTRB(0, 0, 24, 0),
-                            child: Column(
-                                // mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: <Widget>[
-                                  Text("EAN ID",
-                                      style: normalText.copyWith(
-                                          fontFamily: "OpenSans",
-                                          fontWeight: FontWeight.w800,
-                                          color: purpleDark)),
-                                  Container(
-                                      width: 144,
-                                      child: TextFormField(
-                                        style: TextStyle(
-                                            color: blueDark,
-                                            fontFamily: 'OpenSans'),
-                                        decoration: inputFormDecor,
-                                        onChanged: (val) {
-                                          setState(() => ean_id = val);
-                                        },
-                                      ))
-                                ])),
-                        SizedBox(width: 16),
-                        Container(
-                            child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: <Widget>[
-                              Text("QTY",
-                                  style: normalText.copyWith(
-                                      fontFamily: "OpenSans",
-                                      fontWeight: FontWeight.w800,
-                                      color: purpleDark)),
-                              Container(
-                                  width: 64,
-                                  child: TextFormField(
-                                    keyboardType: TextInputType.number,
-                                    inputFormatters: <TextInputFormatter>[
-                                      FilteringTextInputFormatter.allow(
-                                          RegExp(r'[0-9]')),
-                                    ],
-                                    style: TextStyle(
-                                        color: blueDark,
-                                        fontFamily: 'OpenSans'),
-                                    decoration: inputFormDecor,
-                                    onChanged: (val) {
-                                      setState(() => qty = val);
-                                    },
-                                  ))
-                            ])),
-                      ]),
-                ),
-                SizedBox(
-                  height: 32,
-                ),
-                Container(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade300),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.05),
-                              spreadRadius: 3,
-                              blurRadius: 2,
-                              offset:
-                                  Offset(0, 2), // changes position of shadow
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          icon: Image.asset('assets/barcode_icon.png'),
-                          iconSize: 16,
-                          onPressed: () {},
-                        ),
-                      ),
-                      SizedBox(width: 132),
-                      TextButton(
-                        child: Text('Add Item'),
-                        style: TextButton.styleFrom(
-                          primary: Colors.white,
-                          backgroundColor: blueViolet,
-                          onSurface: Colors.grey,
-                        ),
-                        onPressed: () {
-                          print(ean_id + " " + qty);
-                          Navigator.of(context).pop();
-                          print(ean_id + "+++++++++++++++++++" + qty);
-                          // print('Pressed');
-                        },
-                      )
-                    ],
-                  ),
-                )
-              ],
-            )),
-            // actions: <Widget>[]
-          );
-          // TextButton(
-          //   child: Text('Add Item'),
-          //   onPressed: () {
-          //     Navigator.of(context).pop();
-          //     // Navigator.pushNamed(context, "/");
-          //   },
-          // )
-        });
+  Future<void> getData(id) async {
+    var collection = FirebaseFirestore.instance.collection('users');
+    var docSnapshot = await collection.doc(id).get();
+    if (docSnapshot.exists) {
+      Map<String, dynamic>? data = docSnapshot.data();
+      var value = data?['warehouseIds'][0];
+      setState(() => idWarehouse = value);
+    }
+  }
+
+  Future<void> getWarehouse(id) async {
+    var collection = await FirebaseFirestore.instance
+        .collection('companies')
+        .doc("KQHwcd4s2YAjlH0MgZhu")
+        .collection('warehouses')
+        .doc(id)
+        .get();
+    Map<String, dynamic>? data = collection.data();
+    setState(() => warehouse = data?["name"]);
   }
 
   @override
@@ -173,7 +72,7 @@ class _OutboundHomeState extends State<OutboundHome> {
                           size: 20,
                         ),
                         onPressed: () {
-                          Navigator.pushNamed(context, "/");
+                          Navigator.pop(context);
                         },
                       ),
                     ),
@@ -198,59 +97,7 @@ class _OutboundHomeState extends State<OutboundHome> {
                         children: <Widget>[
                           Container(
                             margin: EdgeInsets.fromLTRB(32, 0, 0, 0),
-                            child: Text("Title",
-                                style: header_5.copyWith(
-                                    color: blueDark, fontFamily: 'OpenSans')),
-                          ),
-                          Container(
-                            margin: EdgeInsets.fromLTRB(32, 0, 32, 0),
-                            child: Padding(
-                                padding: EdgeInsets.symmetric(vertical: 5),
-                                child: TextFormField(
-                                  style: TextStyle(
-                                      color: blueDark, fontFamily: 'OpenSans'),
-                                  decoration: inputFormDecor,
-                                  onChanged: (val) {
-                                    setState(() => title = val);
-                                  },
-                                  // validator: (val) => val!.isEmpty
-                                  //     ? "Please enter an email"
-                                  //     : null,
-                                )),
-                          ),
-                          SizedBox(
-                            height: 32,
-                          ),
-                          Container(
-                            margin: EdgeInsets.fromLTRB(32, 0, 0, 0),
-                            child: Text("Description",
-                                style: header_5.copyWith(
-                                    color: blueDark, fontFamily: 'OpenSans')),
-                          ),
-                          Container(
-                            margin: EdgeInsets.fromLTRB(32, 0, 32, 0),
-                            child: Padding(
-                                padding: EdgeInsets.symmetric(vertical: 5),
-                                child: TextFormField(
-                                  maxLines: null,
-                                  keyboardType: TextInputType.multiline,
-                                  style: TextStyle(
-                                      color: blueDark, fontFamily: 'OpenSans'),
-                                  decoration: inputFormDecor,
-                                  onChanged: (val) {
-                                    setState(() => description = val);
-                                  },
-                                  // validator: (val) => val!.isEmpty
-                                  //     ? "Please enter an email"
-                                  //     : null,
-                                )),
-                          ),
-                          SizedBox(
-                            height: 32,
-                          ),
-                          Container(
-                            margin: EdgeInsets.fromLTRB(32, 0, 0, 0),
-                            child: Text("Items",
+                            child: Text("Packages",
                                 style: header_5.copyWith(
                                     color: blueDark, fontFamily: 'OpenSans')),
                           ),
@@ -263,40 +110,20 @@ class _OutboundHomeState extends State<OutboundHome> {
                                 // color: purpleDark,
                                 child: InkWell(
                                     onTap: () async {
-                                      print(widget.uid);
-                                      // await Future.delayed(
-                                      //     Duration(seconds: 1));
-                                      await showAddItem(context);
+                                      await getData(widget.uid);
+                                      await getWarehouse(idWarehouse);
+                                      Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  OutboundPackage(
+                                                    uid: widget.uid,
+                                                    warehouseId: warehouse,
+                                                  )));
                                     },
                                     child: WideButton(
-                                        buttonText: "+ Add Item",
+                                        buttonText: "+ Add Packages",
                                         colorSide: "Dark")),
                               )),
-                          SizedBox(
-                            height: 32,
-                          ),
-                          Container(
-                            margin: EdgeInsets.fromLTRB(32, 0, 0, 0),
-                            child: Text("Destination",
-                                style: header_5.copyWith(
-                                    color: blueDark, fontFamily: 'OpenSans')),
-                          ),
-                          Container(
-                            margin: EdgeInsets.fromLTRB(32, 0, 32, 0),
-                            child: Padding(
-                                padding: EdgeInsets.symmetric(vertical: 5),
-                                child: TextFormField(
-                                  style: TextStyle(
-                                      color: blueDark, fontFamily: 'OpenSans'),
-                                  decoration: inputFormDecor,
-                                  onChanged: (val) {
-                                    setState(() => destination = val);
-                                  },
-                                  // validator: (val) => val!.isEmpty
-                                  //     ? "Please enter an email"
-                                  //     : null,
-                                )),
-                          ),
                         ]))
               ],
             ))));
