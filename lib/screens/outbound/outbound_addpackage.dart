@@ -726,8 +726,8 @@ class _OutboundPackageState extends State<OutboundPackage> {
 
                                     List<Map<String, dynamic>> itemArray = [];
 
-                                    print("length of packageList = " +
-                                        packageList.length.toString());
+                                    // print("length of packageList = " +
+                                    //     packageList.length.toString());
                                     for (int i = 0;
                                         i < packageList.length;
                                         i++) {
@@ -736,8 +736,8 @@ class _OutboundPackageState extends State<OutboundPackage> {
                                       perItem["quantity"] =
                                           packageList[i].quantity;
                                       itemArray.add(perItem);
-                                      print("loop itemArray number" +
-                                          (i + 1).toString());
+                                      // print("loop itemArray number" +
+                                      //     (i + 1).toString());
                                     }
 
                                     var userRef = FirebaseFirestore.instance
@@ -766,9 +766,9 @@ class _OutboundPackageState extends State<OutboundPackage> {
                                       "status": "ready",
                                       "title": title,
                                       "warehouseId": warehouseIds,
-                                      "xDim": x,
-                                      "yDim": y,
-                                      "zDim": z,
+                                      "xDim": int.parse(x),
+                                      "yDim": int.parse(y),
+                                      "zDim": int.parse(z),
                                       "items": FieldValue.arrayUnion(itemArray),
                                     }).then((value) {
                                       packageId = value.id;
