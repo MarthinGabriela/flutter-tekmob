@@ -1,9 +1,8 @@
 import 'package:tekmob/services/package/packageRepo.dart';
 
 class PackageList {
-  List<PackageRepo> listPackage = [];
+  List<PackageRepo> listItem = [];
+  String packageId;
 
-  PackageList(this.listPackage);
-
-  List get list => listPackage;
+  PackageList({required this.listItem, required this.packageId});
 }
