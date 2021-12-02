@@ -11,6 +11,7 @@ import 'package:tekmob/elements/button_login_logout.dart';
 import 'package:tekmob/screens/outbound/outbound_addpackage.dart';
 import 'package:tekmob/services/package/packageListRepo.dart';
 import 'package:tekmob/services/package/packageRepo.dart';
+import 'package:tekmob/screens/inbound/inbound_addpackage.dart';
 
 class OutboundHome extends StatefulWidget {
   final String uid;
