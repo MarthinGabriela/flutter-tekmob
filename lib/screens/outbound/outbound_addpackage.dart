@@ -9,6 +9,8 @@ import 'package:tekmob/theme.dart';
 import 'package:tekmob/elements/button_login_logout.dart';
 import 'package:tekmob/elements/package_card.dart';
 import 'package:tekmob/services/package/packageRepo.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:flutter/services.dart';
 
 class OutboundPackage extends StatefulWidget {
   final String uid;
@@ -35,9 +37,54 @@ class _OutboundPackageState extends State<OutboundPackage> {
   String itemError = "You haven't add any item yet";
   bool errorSwitch = false;
 
+  String _scanBarcode = '';
+
   List<PackageRepo> packageList = [];
   List<PackageRepo> itemBaruList = [];
   String itemName = "";
+
+  Future<void> startBarcodeScanStream() async {
+    FlutterBarcodeScanner.getBarcodeStreamReceiver(
+            '#ff6666', 'Cancel', true, ScanMode.BARCODE)!
+        .listen((barcode) => print(barcode));
+  }
+
+  Future<void> scanQR() async {
+    String barcodeScanRes;
+    try {
+      barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
+          '#ff6666', 'Cancel', true, ScanMode.QR);
+      print(barcodeScanRes);
+    } on PlatformException {
+      barcodeScanRes = 'Failed to get platform version.';
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _scanBarcode = barcodeScanRes;
+    });
+  }
+
+  Future<void> scanBarcodeNormal() async {
+    String barcodeScanRes;
+    try {
+      barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
+          '#ff6666', 'Cancel', true, ScanMode.BARCODE);
+      print(barcodeScanRes);
+    } on PlatformException {
+      barcodeScanRes = 'Failed to get platform version.';
+    }
+
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    if (!mounted) return;
+
+    setState(() {
+      ean_id = barcodeScanRes;
+    });
+  }
 
   Future<bool> checkIfDocExists(String docId) async {
     try {
@@ -219,9 +266,14 @@ class _OutboundPackageState extends State<OutboundPackage> {
                           ],
                         ),
                         child: IconButton(
+                          // @irhamzh should assign assets
                           icon: Image.asset('assets/barcode_icon.png'),
                           iconSize: 16,
-                          onPressed: () {},
+                          onPressed: () async {
+                            await scanBarcodeNormal();
+                            Navigator.pop(context);
+                            await showAddItem(context);
+                          },
                         ),
                       ),
                       SizedBox(width: 132),

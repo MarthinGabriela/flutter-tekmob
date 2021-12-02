@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:tekmob/auth/auth.dart';
 import 'package:tekmob/elements/box_events.dart';
+import 'package:tekmob/screens/inbound/inbound_addpackage.dart';
 import 'package:tekmob/screens/outbound/outbound_home.dart';
 import 'package:tekmob/screens/wrapper_home.dart';
 import 'package:tekmob/theme.dart';
@@ -55,7 +56,12 @@ class _HomeState extends State<Home> {
                     Ink(
                       color: Colors.white,
                       child: InkWell(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => InboundPackage(
+                                    uid: widget.uid,
+                                  )));
+                        },
                         child: BoxEvent(
                             text: "Inbound",
                             iconEvents: Image(
