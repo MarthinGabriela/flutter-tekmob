@@ -201,6 +201,7 @@ class _OutboundHomeState extends State<OutboundHome> {
                                       if (stringofPackage.contains(" ")) {
                                         setState(() {
                                           listOfPackage = [];
+                                          load = true;
                                         });
                                         print("masuk2");
                                         List<String> splittedSOP =
@@ -237,28 +238,10 @@ class _OutboundHomeState extends State<OutboundHome> {
                                             print("haha");
                                             setState(() {
                                               listOfPackage.add(newPackList);
+                                              load = false;
                                             });
                                           }
                                         }
-                                      }
-
-                                      print("listofPackage size is = " +
-                                          listOfPackage.length.toString());
-
-                                      for (int i = 0;
-                                          i < listOfPackage.length;
-                                          i++) {
-                                        print("package number " +
-                                            i.toString() +
-                                            " id = " +
-                                            listOfPackage[i].packageId);
-                                        print("package number " +
-                                            i.toString() +
-                                            " listItem length = " +
-                                            listOfPackage[i]
-                                                .listItem
-                                                .length
-                                                .toString());
                                       }
                                     },
                                     child: WideButton(
@@ -510,6 +493,21 @@ class _OutboundHomeState extends State<OutboundHome> {
                                                   "deliveryId": deliveryId,
                                                 });
 
+                                                for (int i = 0;
+                                                    i < packageArray.length;
+                                                    i++) {
+                                                  await firestoreInstance
+                                                      .collection('companies')
+                                                      .doc(
+                                                          'KQHwcd4s2YAjlH0MgZhu')
+                                                      .collection('warehouses')
+                                                      .doc(idWarehouse)
+                                                      .collection('packages')
+                                                      .doc(packageArray[i])
+                                                      .update({
+                                                    "status": "indelivery",
+                                                  });
+                                                }
                                                 // if (itemBaruList.isNotEmpty) {
                                                 //   for (int i = 0;
                                                 //       i < itemBaruList.length;
