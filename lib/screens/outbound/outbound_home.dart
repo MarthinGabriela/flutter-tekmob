@@ -434,6 +434,7 @@ class _OutboundHomeState extends State<OutboundHome> {
                                               if (listOfPackage.isNotEmpty) {
                                                 setState(() {
                                                   errorSwitch = false;
+                                                  load = true;
                                                 });
 
                                                 List<String> packageArray = [];
@@ -508,6 +509,9 @@ class _OutboundHomeState extends State<OutboundHome> {
                                                     "status": "indelivery",
                                                   });
                                                 }
+                                                setState(() {
+                                                  load = false;
+                                                });
                                                 // if (itemBaruList.isNotEmpty) {
                                                 //   for (int i = 0;
                                                 //       i < itemBaruList.length;
