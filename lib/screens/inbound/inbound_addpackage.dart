@@ -37,10 +37,75 @@ class _InboundPackageState extends State<InboundPackage> {
   bool errorSwitch = false;
 
   String _scanQR = '';
+  String manualPackageId = '';
+  String companyId = '';
+  String warehouseId = '';
+  // String companyId = '';
+  bool load = false;
 
   List<PackageRepo> packageList = [];
   List<PackageRepo> itemBaruList = [];
   String itemName = "";
+
+  @override
+  void didChangeDependencies() async {
+    setState(() {
+      load = true;
+    });
+    // await getData(widget.uid);
+    // await getWarehouse(idWarehouse);
+    super.didChangeDependencies();
+    // QuerySnapshot collection = await FirebaseFirestore.instance
+    //     .collection('companies')
+    //     .doc("KQHwcd4s2YAjlH0MgZhu")
+    //     .collection('warehouses')
+    //     .get();
+    // var listdocs = collection.docs;
+    // for (int i = 0; i < listdocs.length; i++) {
+    //   var data = listdocs[i];
+    //   if (data['name'] == warehouse) {
+    //     listdocs.remove(data);
+    //   }
+    //   print(data['name']);
+  }
+
+  Future<void> getData(id) async {
+    var collection = FirebaseFirestore.instance.collection('users');
+    var docSnapshot = await collection.doc(id).get();
+    if (docSnapshot.exists) {
+      Map<String, dynamic>? data = docSnapshot.data();
+      var warehouseValue = data?['warehouseIds'][0];
+      var companyValue = data?['companyId'];
+      setState(() {
+        warehouseId = warehouseValue;
+        companyId = companyValue;
+      });
+    }
+  }
+
+  Future<void> getWarehouse(companyId, warehouseId) async {
+    var collection = await FirebaseFirestore.instance
+        .collection('companies')
+        .doc(companyId)
+        .collection('warehouses')
+        .doc(warehouseId)
+        .get();
+    Map<String, dynamic>? data = collection.data();
+    setState(() => warehouse = data?["name"]);
+  }
+
+  Future<void> getPackage(warehouseId, packageId) async {
+    var collection = await FirebaseFirestore.instance
+        .collection('companies')
+        .doc(companyId)
+        .collection('warehouses')
+        .doc(warehouseId)
+        .collection('packages')
+        .doc(packageId)
+        .get();
+    Map<String, dynamic>? data = collection.data();
+    setState(() {});
+  }
 
   Future<void> startBarcodeScanStream() async {
     FlutterBarcodeScanner.getBarcodeStreamReceiver(
@@ -98,6 +163,138 @@ class _InboundPackageState extends State<InboundPackage> {
     }
   }
 
+  Future<Future<AlertDialog?>> showInputPackage(BuildContext context) async {
+    return showDialog<AlertDialog>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              content: Form(
+                  // key:_formKey,
+                  child: Container(
+            margin: EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Please input a Package ID",
+                  style: normalText.copyWith(
+                      color: purpleDark, fontFamily: "Open Sans"),
+                ),
+                Container(
+                    margin: EdgeInsets.fromLTRB(0, 16, 24, 0),
+                    child: Column(
+                        // mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: <Widget>[
+                          // Text("Product Name",
+                          //     style: normalText.copyWith(
+                          //         fontFamily: "OpenSans",
+                          //         fontWeight: FontWeight.w800,
+                          //         color: purpleDark)),
+                          Container(
+                              width: 144,
+                              child: TextFormField(
+                                style: TextStyle(
+                                    color: blueDark, fontFamily: 'OpenSans'),
+                                decoration: inputFormDecor,
+                                onChanged: (val) {
+                                  setState(() => manualPackageId = val);
+                                },
+                              )),
+                          SizedBox(height: 24),
+                          TextButton(
+                            child: Text('Save Product'),
+                            style: TextButton.styleFrom(
+                              primary: Colors.white,
+                              backgroundColor: blueViolet,
+                              onSurface: Colors.grey,
+                            ),
+                            onPressed: () async {
+                              // setState(() {
+                              //   PackageRepo newpack = PackageRepo(
+                              //       eanId: ean_id,
+                              //       quantity: int.parse(qty),
+                              //       name: itemName);
+                              //   packageList.add(newpack);
+                              //   itemBaruList.add(newpack);
+                              //   errorSwitch = false;
+                              // });
+
+                              // setState(() {
+                              //   ean_id = "";
+                              //   qty = "";
+                              //   itemName = "";
+                              // });
+                              Navigator.of(context).pop();
+                            },
+                          )
+                        ])),
+              ],
+            ),
+          )));
+        });
+  }
+
+  Future<Future<AlertDialog?>> showAddPackage(BuildContext context) async {
+    return showDialog<AlertDialog>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              content: Container(
+            margin: EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Do you want to store a new package with scanner or manually?",
+                  style: normalText.copyWith(
+                      color: purpleDark, fontFamily: "Open Sans"),
+                ),
+                Container(
+                    margin: EdgeInsets.fromLTRB(0, 32, 0, 16),
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: <Widget>[
+                          Container(
+                              padding: EdgeInsets.fromLTRB(24, 16, 24, 16),
+                              child: Ink(
+                                // color: purpleDark,
+                                child: InkWell(
+                                    onTap: () async {
+                                      print("tambil baru");
+                                      await scanQR();
+                                      Navigator.pop(context);
+                                    },
+                                    child: WideButton(
+                                        buttonText: "Scan a new package",
+                                        colorSide: "Not Dark")),
+                              )),
+                          Container(
+                              padding: EdgeInsets.fromLTRB(24, 16, 24, 16),
+                              child: Ink(
+                                child: InkWell(
+                                    onTap: () async {
+                                      Navigator.pop(context);
+                                      await showInputPackage(context);
+                                      // final res = await Navigator.of(context)
+                                      //   .push(MaterialPageRoute(
+                                      //       builder: (context) =>
+                                      //           OutboundPackage(
+                                      //             uid: widget.uid,
+                                      //             warehouseId: warehouse,
+                                      //           )));
+                                    },
+                                    child: WideButton(
+                                        buttonText: "Input a new Package",
+                                        colorSide: "Not Dark")),
+                              )),
+                        ])),
+              ],
+            ),
+          ));
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -129,38 +326,39 @@ class _InboundPackageState extends State<InboundPackage> {
               SizedBox(
                 height: 32,
               ),
-              Center(
-                child: Column(children: [
-                  Container(
-                    /*
-                @TODO 
-                @irhamzh should revised the receiving package and what in store
-                */
-                    margin: EdgeInsets.fromLTRB(32, 0, 0, 0),
-                    child: Text("Receive Package",
-                        style: header_3.copyWith(
-                            color: purpleDark, fontFamily: 'QuickSand')),
-                  ),
-                  SizedBox(
-                    height: 32,
-                  ),
-                  IconButton(
-                    // @irhamzh should assign assets
-                    icon: Image.asset('assets/barcode_icon.png'),
-                    iconSize: 16,
-                    onPressed: () async {
-                      await scanQR();
-                    },
-                  ),
-                  Text('Scan result : $_scanQR\n'),
-                  TextFormField(
-                    initialValue: _scanQR,
-                    decoration: const InputDecoration(
-                        border: UnderlineInputBorder(),
-                        labelText: 'Your Package Id Here'),
-                  ),
-                ]),
-              )
+              Container(
+                margin: EdgeInsets.fromLTRB(32, 0, 0, 0),
+                child: Text("Cart",
+                    style: header_3.copyWith(
+                        color: purpleDark, fontFamily: 'QuickSand')),
+              ),
+              SizedBox(
+                height: 32,
+              ),
+              Container(
+                  padding: EdgeInsets.fromLTRB(32, 0, 32, 0),
+                  child: Ink(
+                    // color: purpleDark,
+                    child: InkWell(
+                        onTap: () async {
+                          await showAddPackage(context);
+                        },
+                        child: WideButton(
+                            buttonText: "+ Add Package", colorSide: "Dark")),
+                  )),
+              SizedBox(
+                height: 32,
+              ),
+              Container(
+                  padding: EdgeInsets.fromLTRB(32, 0, 32, 0),
+                  child: Ink(
+                    // color: purpleDark,
+                    child: InkWell(
+                        onTap: () async {},
+                        child: WideButton(
+                            buttonText: "Store Packages",
+                            colorSide: "Not Dark")),
+                  )),
             ],
           ),
         )),

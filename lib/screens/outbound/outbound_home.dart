@@ -238,11 +238,13 @@ class _OutboundHomeState extends State<OutboundHome> {
                                             print("haha");
                                             setState(() {
                                               listOfPackage.add(newPackList);
-                                              load = false;
                                             });
                                           }
                                         }
                                       }
+                                      setState(() {
+                                        load = false;
+                                      });
                                     },
                                     child: WideButton(
                                         buttonText: "Create a new Package",
