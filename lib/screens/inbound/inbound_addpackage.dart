@@ -26,22 +26,19 @@ class _InboundPackageState extends State<InboundPackage> {
   final firestoreInstance = FirebaseFirestore.instance;
 
   String warehouse = "";
-  String title = "";
-  String description = "";
-  String x = "";
-  String y = "";
-  String z = "";
   String ean_id = "";
-  String qty = "";
-  String itemError = "You haven't add any item yet";
   bool errorSwitch = false;
-
   String _scanQR = '';
   String manualPackageId = '';
+  bool manualPackageValidator = false;
   String companyId = '';
   String warehouseId = '';
-  // String companyId = '';
   bool load = false;
+  var listWarehouse = [];
+  var mapDropdown = new Map();
+  var warehouseDropdownId;
+
+  String dropdownValue = "";
 
   List<PackageRepo> packageList = [];
   List<PackageRepo> itemBaruList = [];
@@ -52,59 +49,11 @@ class _InboundPackageState extends State<InboundPackage> {
     setState(() {
       load = true;
     });
-    // await getData(widget.uid);
-    // await getWarehouse(idWarehouse);
+    await getData(widget.uid);
+    await getWarehouse(companyId, warehouseId);
+    await getWarehouseList(companyId);
     super.didChangeDependencies();
-    // QuerySnapshot collection = await FirebaseFirestore.instance
-    //     .collection('companies')
-    //     .doc("KQHwcd4s2YAjlH0MgZhu")
-    //     .collection('warehouses')
-    //     .get();
-    // var listdocs = collection.docs;
-    // for (int i = 0; i < listdocs.length; i++) {
-    //   var data = listdocs[i];
-    //   if (data['name'] == warehouse) {
-    //     listdocs.remove(data);
-    //   }
-    //   print(data['name']);
-  }
-
-  Future<void> getData(id) async {
-    var collection = FirebaseFirestore.instance.collection('users');
-    var docSnapshot = await collection.doc(id).get();
-    if (docSnapshot.exists) {
-      Map<String, dynamic>? data = docSnapshot.data();
-      var warehouseValue = data?['warehouseIds'][0];
-      var companyValue = data?['companyId'];
-      setState(() {
-        warehouseId = warehouseValue;
-        companyId = companyValue;
-      });
-    }
-  }
-
-  Future<void> getWarehouse(companyId, warehouseId) async {
-    var collection = await FirebaseFirestore.instance
-        .collection('companies')
-        .doc(companyId)
-        .collection('warehouses')
-        .doc(warehouseId)
-        .get();
-    Map<String, dynamic>? data = collection.data();
-    setState(() => warehouse = data?["name"]);
-  }
-
-  Future<void> getPackage(warehouseId, packageId) async {
-    var collection = await FirebaseFirestore.instance
-        .collection('companies')
-        .doc(companyId)
-        .collection('warehouses')
-        .doc(warehouseId)
-        .collection('packages')
-        .doc(packageId)
-        .get();
-    Map<String, dynamic>? data = collection.data();
-    setState(() {});
+    print("masuk");
   }
 
   Future<void> startBarcodeScanStream() async {
@@ -147,6 +96,77 @@ class _InboundPackageState extends State<InboundPackage> {
     });
   }
 
+  Future<void> getData(id) async {
+    var collection = FirebaseFirestore.instance.collection('users');
+    var docSnapshot = await collection.doc(id).get();
+    if (docSnapshot.exists) {
+      Map<String, dynamic>? data = docSnapshot.data();
+      var warehouseValue = data?['warehouseIds'][0];
+      var companyValue = data?['companyId'];
+      setState(() {
+        warehouseId = warehouseValue;
+        companyId = companyValue;
+      });
+    }
+  }
+
+  Future<void> getWarehouse(companyId, warehouseId) async {
+    var collection = await FirebaseFirestore.instance
+        .collection('companies')
+        .doc(companyId)
+        .collection('warehouses')
+        .doc(warehouseId)
+        .get();
+    Map<String, dynamic>? data = collection.data();
+    setState(() => warehouse = data?["name"]);
+  }
+
+  Future<void> getWarehouseList(companyId) async {
+    QuerySnapshot collection = await FirebaseFirestore.instance
+        .collection('companies')
+        .doc(companyId)
+        .collection('warehouses')
+        .get();
+    var listdocs = collection.docs;
+    for (int i = 0; i < listdocs.length; i++) {
+      var data = listdocs[i];
+      if (data['name'] == warehouse) {
+        listdocs.remove(data);
+      }
+      setState(() {
+        listWarehouse = listdocs;
+        dropdownValue = listWarehouse[0]['name'];
+      });
+    }
+  }
+
+  Future<void> getPackage(warehouseId, packageId) async {
+    var collection = await FirebaseFirestore.instance
+        .collection('companies')
+        .doc(companyId)
+        .collection('warehouses')
+        .doc(warehouseId)
+        .collection('packages')
+        .doc(packageId)
+        .get();
+    Map<String, dynamic>? data = collection.data();
+    print(data);
+    if (data != null) {
+      print(data['packageId']);
+      setState(() {
+        manualPackageValidator = false;
+        // LANJUTIN MANUAL COEG,
+        // tambahin dropdown warehouse
+        // bikin caard package??
+        // localstorage
+      });
+    } else {
+      setState(() {
+        manualPackageValidator = true;
+      });
+    }
+  }
+
   Future<bool> checkIfDocExists(String docId) async {
     try {
       // Get reference to Firestore collection
@@ -175,6 +195,38 @@ class _InboundPackageState extends State<InboundPackage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                Center(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10)),
+                    width: MediaQuery.of(context).size.width * 0.32,
+                    child: DropdownButton<String>(
+                      value: dropdownValue,
+                      // hint: Text(dropdownValue),
+                      items: listWarehouse.map((value) {
+                        print("value = " + value.id + " + " + value['name']);
+                        mapDropdown[value['name']] = value.id;
+                        return DropdownMenuItem<String>(
+                          value: value['name'].toString(),
+                          child: Text(value['name'].toString()),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          dropdownValue = value.toString();
+                          warehouseDropdownId = mapDropdown[dropdownValue];
+                          print("dropdownValue = " + dropdownValue);
+                          print("warehouse id = " + warehouseDropdownId);
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 16,
+                ),
                 Text(
                   "Please input a Package ID",
                   style: normalText.copyWith(
@@ -186,21 +238,18 @@ class _InboundPackageState extends State<InboundPackage> {
                         // mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: <Widget>[
-                          // Text("Product Name",
-                          //     style: normalText.copyWith(
-                          //         fontFamily: "OpenSans",
-                          //         fontWeight: FontWeight.w800,
-                          //         color: purpleDark)),
-                          Container(
-                              width: 144,
-                              child: TextFormField(
-                                style: TextStyle(
-                                    color: blueDark, fontFamily: 'OpenSans'),
-                                decoration: inputFormDecor,
-                                onChanged: (val) {
-                                  setState(() => manualPackageId = val);
-                                },
-                              )),
+                          Center(
+                            child: Container(
+                                width: MediaQuery.of(context).size.width * 0.32,
+                                child: TextFormField(
+                                  style: TextStyle(
+                                      color: blueDark, fontFamily: 'OpenSans'),
+                                  decoration: inputFormDecor,
+                                  onChanged: (val) {
+                                    setState(() => manualPackageId = val);
+                                  },
+                                )),
+                          ),
                           SizedBox(height: 24),
                           TextButton(
                             child: Text('Save Product'),
@@ -210,6 +259,16 @@ class _InboundPackageState extends State<InboundPackage> {
                               onSurface: Colors.grey,
                             ),
                             onPressed: () async {
+                              print("calling getPackage(" +
+                                  manualPackageId +
+                                  "," +
+                                  warehouseDropdownId +
+                                  ")");
+                              await getPackage(
+                                  warehouseDropdownId, manualPackageId);
+                              if (manualPackageValidator == true) {
+                                // Navigator.of(context).pop();
+                              }
                               // setState(() {
                               //   PackageRepo newpack = PackageRepo(
                               //       eanId: ean_id,
@@ -346,9 +405,16 @@ class _InboundPackageState extends State<InboundPackage> {
                         child: WideButton(
                             buttonText: "+ Add Package", colorSide: "Dark")),
                   )),
-              SizedBox(
-                height: 32,
-              ),
+              manualPackageValidator == true
+                  ? Center(
+                      child: Container(
+                          margin: EdgeInsets.fromLTRB(0, 16, 0, 32),
+                          child: Text("Package tidak ditemukan",
+                              style: normalText.copyWith(color: Colors.red))),
+                    )
+                  : SizedBox(
+                      height: 32,
+                    ),
               Container(
                   padding: EdgeInsets.fromLTRB(32, 0, 32, 0),
                   child: Ink(
