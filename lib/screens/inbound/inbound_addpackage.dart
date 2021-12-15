@@ -5,12 +5,15 @@ import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:tekmob/auth/auth.dart';
 import 'package:tekmob/elements/button_socmed.dart';
+import 'package:tekmob/elements/packageCart_inbound.dart';
 import 'package:tekmob/theme.dart';
 import 'package:tekmob/elements/button_login_logout.dart';
 import 'package:tekmob/elements/package_card.dart';
 import 'package:tekmob/services/package/packageRepo.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter/services.dart';
+import 'package:localstorage/localstorage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class InboundPackage extends StatefulWidget {
   final String uid;
@@ -24,6 +27,8 @@ class InboundPackage extends StatefulWidget {
 class _InboundPackageState extends State<InboundPackage> {
   final _formKey = GlobalKey<FormState>();
   final firestoreInstance = FirebaseFirestore.instance;
+  final LocalStorage packageStorage = new LocalStorage('packageKey');
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   String warehouse = "";
   String ean_id = "";
@@ -35,6 +40,7 @@ class _InboundPackageState extends State<InboundPackage> {
   String warehouseId = '';
   bool load = false;
   var listWarehouse = [];
+  var listPackageId = [];
   var mapDropdown = new Map();
   var warehouseDropdownId;
 
@@ -52,6 +58,7 @@ class _InboundPackageState extends State<InboundPackage> {
     await getData(widget.uid);
     await getWarehouse(companyId, warehouseId);
     await getWarehouseList(companyId);
+    print(listWarehouse);
     super.didChangeDependencies();
     print("masuk");
   }
@@ -150,9 +157,22 @@ class _InboundPackageState extends State<InboundPackage> {
         .doc(packageId)
         .get();
     Map<String, dynamic>? data = collection.data();
-    print(data);
     if (data != null) {
-      print(data['packageId']);
+      Map<String, dynamic>? newData = {
+        "packageId": data['packageId'],
+        "title": data['title'],
+        "warehouseId": data['warehouseId'],
+        "companyId": companyId,
+        "items": data['items'],
+        "createdAt": data['createdAt'].toDate().toString(),
+        "warehouse": dropdownValue.toString()
+      };
+      listPackageId.add(data['packageId'].toString());
+      packageStorage.setItem(data['packageId'], newData);
+      // packageStorage.setItem("data", "boobies are the best");
+      print("hasil localstorage = ");
+      print(packageStorage.getItem(data['packageId']));
+      print(packageStorage);
       setState(() {
         manualPackageValidator = false;
         // LANJUTIN MANUAL COEG,
@@ -259,11 +279,6 @@ class _InboundPackageState extends State<InboundPackage> {
                               onSurface: Colors.grey,
                             ),
                             onPressed: () async {
-                              print("calling getPackage(" +
-                                  manualPackageId +
-                                  "," +
-                                  warehouseDropdownId +
-                                  ")");
                               await getPackage(
                                   warehouseDropdownId, manualPackageId);
                               if (manualPackageValidator == true) {
@@ -395,6 +410,15 @@ class _InboundPackageState extends State<InboundPackage> {
                 height: 32,
               ),
               Container(
+                child: Column(
+                  children: listPackageId
+                      .map((package) => PackageCart(
+                          packageData:
+                              packageStorage.getItem(package.toString())))
+                      .toList(),
+                ),
+              ),
+              Container(
                   padding: EdgeInsets.fromLTRB(32, 0, 32, 0),
                   child: Ink(
                     // color: purpleDark,
@@ -420,10 +444,31 @@ class _InboundPackageState extends State<InboundPackage> {
                   child: Ink(
                     // color: purpleDark,
                     child: InkWell(
-                        onTap: () async {},
+                        onTap: () async {
+                          if (listPackageId.isEmpty) {
+                            print("empty package");
+                          } else {
+                            final SharedPreferences prefs = await _prefs;
+                            List<String>? tempList = [];
+                            if (prefs.getStringList('cart_list') != null) {
+                              print('if pertama');
+                              tempList = prefs.getStringList('cart_list');
+                            }
+                            // else {
+                            //   print('else null');
+                            // }
+                            tempList?.add(listPackageId.join(','));
+                            prefs.setStringList("cart_list", tempList!);
+                            print(prefs.get("cart_list"));
+                            setState(() {
+                              listPackageId = [];
+                            });
+                            // prefs.clear();
+                            Navigator.of(context).pop();
+                          }
+                        },
                         child: WideButton(
-                            buttonText: "Store Packages",
-                            colorSide: "Not Dark")),
+                            buttonText: "Save Cart", colorSide: "Not Dark")),
                   )),
             ],
           ),

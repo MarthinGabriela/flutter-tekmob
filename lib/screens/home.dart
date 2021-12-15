@@ -4,6 +4,7 @@ import 'package:tekmob/auth/auth.dart';
 import 'package:tekmob/elements/box_events.dart';
 import 'package:tekmob/screens/inbound/inbound_addpackage.dart';
 import 'package:tekmob/screens/outbound/outbound_home.dart';
+import 'package:tekmob/screens/storing/storing_home.dart';
 import 'package:tekmob/screens/wrapper_home.dart';
 import 'package:tekmob/theme.dart';
 import 'package:tekmob/elements/button_login_logout.dart';
@@ -105,7 +106,12 @@ class _HomeState extends State<Home> {
                     Ink(
                       color: Colors.white,
                       child: InkWell(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => StoringHome(
+                                    uid: widget.uid,
+                                  )));
+                        },
                         child: BoxEvent(
                             text: "Storing",
                             iconEvents: Image(
