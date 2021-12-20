@@ -400,8 +400,6 @@ class _OutboundHomeState extends State<OutboundHome> {
                                       padding:
                                           EdgeInsets.symmetric(vertical: 5),
                                       child: TextFormField(
-                                        maxLines: null,
-                                        keyboardType: TextInputType.multiline,
                                         style: TextStyle(
                                             color: blueDark,
                                             fontFamily: 'OpenSans'),
@@ -409,9 +407,9 @@ class _OutboundHomeState extends State<OutboundHome> {
                                         onChanged: (val) {
                                           setState(() => description = val);
                                         },
-                                        validator: (val) => val!.isEmpty
-                                            ? "Please enter a description"
-                                            : null,
+                                        // validator: (val) => val!.isEmpty
+                                        //     ? "Please enter a description"
+                                        //     : null,
                                       )),
                                 ),
                                 Container(
@@ -464,7 +462,10 @@ class _OutboundHomeState extends State<OutboundHome> {
                                                       userIni["lastName"],
                                                   "authorId": widget.uid,
                                                   "createdAt": DateTime.now(),
-                                                  "description": description,
+                                                  "description": description ==
+                                                          ""
+                                                      ? "this is for a new package"
+                                                      : description,
                                                   "status": "ready",
                                                   "warehouseIdFrom":
                                                       idWarehouse,

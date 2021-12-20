@@ -146,10 +146,21 @@ class _HomeState extends State<Home> {
                       );
                     }).toList(),
                     onChanged: (value) {
-                      setState(() {
+                      setState(() async {
                         dropdownValue = value.toString();
                         warehouseDropdownId = mapDropdown[dropdownValue];
+                        final SharedPreferences prefs = await _prefs;
+                        prefs.setString("warehouseId", warehouseDropdownId);
+                        prefs.setString("warehouseName", dropdownValue);
                         print(warehouseDropdownId);
+                      });
+
+                      setState(() async {
+                        final SharedPreferences prefs = await _prefs;
+                        dropdownValue =
+                            prefs.getString("warehouseName").toString();
+                        warehouseDropdownId =
+                            prefs.getString("warehouseId").toString();
                       });
                     },
                   ),
@@ -164,8 +175,18 @@ class _HomeState extends State<Home> {
                       child: InkWell(
                         onTap: () async {
                           final SharedPreferences prefs = await _prefs;
-                          prefs.setString("warehouseId", warehouseDropdownId);
-                          prefs.setString("warehouseName", dropdownValue);
+                          if (prefs.getString('warehouseId') == null ||
+                              prefs.getString('warehouseId') == "") {
+                            prefs.setString("warehouseName", dropdownValue);
+                            prefs.setString(
+                                'warehouseId', mapDropdown[dropdownValue]);
+                          }
+                          // else {
+                          // prefs.setString("warehouseId", warehouseDropdownId);
+                          // prefs.setString("warehouseName", dropdownValue);
+                          // }
+                          // prefs.setString("warehouseId", warehouseDropdownId);
+                          // prefs.setString("warehouseName", dropdownValue);
 
                           Navigator.of(context).push(MaterialPageRoute(
                               builder: (context) => InboundPackage(
@@ -188,8 +209,18 @@ class _HomeState extends State<Home> {
                       child: InkWell(
                         onTap: () async {
                           final SharedPreferences prefs = await _prefs;
-                          prefs.setString("warehouseId", warehouseDropdownId);
-                          prefs.setString("warehouseName", dropdownValue);
+                          if (prefs.getString('warehouseId') == null ||
+                              prefs.getString('warehouseId') == "") {
+                            prefs.setString("warehouseName", dropdownValue);
+                            prefs.setString(
+                                'warehouseId', mapDropdown[dropdownValue]);
+                          }
+                          //  else {
+                          //   prefs.setString("warehouseId", warehouseDropdownId);
+                          //   prefs.setString("warehouseName", dropdownValue);
+                          // }
+                          // prefs.setString("warehouseId", warehouseDropdownId);
+                          // prefs.setString("warehouseName", dropdownValue);
 
                           Navigator.of(context).push(MaterialPageRoute(
                               builder: (context) => OutboundHome(
@@ -216,8 +247,18 @@ class _HomeState extends State<Home> {
                       child: InkWell(
                         onTap: () async {
                           final SharedPreferences prefs = await _prefs;
-                          prefs.setString("warehouseId", warehouseDropdownId);
-                          prefs.setString("warehouseName", dropdownValue);
+                          if (prefs.getString('warehouseId') == null ||
+                              prefs.getString('warehouseId') == "") {
+                            prefs.setString("warehouseName", dropdownValue);
+                            prefs.setString(
+                                'warehouseId', mapDropdown[dropdownValue]);
+                          }
+                          // else {
+                          //   prefs.setString("warehouseId", warehouseDropdownId);
+                          //   prefs.setString("warehouseName", dropdownValue);
+                          // }
+                          // prefs.setString("warehouseId", warehouseDropdownId);
+                          // prefs.setString("warehouseName", dropdownValue);
 
                           Navigator.of(context).push(MaterialPageRoute(
                               builder: (context) => InventoryHome(
@@ -243,8 +284,17 @@ class _HomeState extends State<Home> {
                       child: InkWell(
                           onTap: () async {
                             final SharedPreferences prefs = await _prefs;
-                            prefs.setString("warehouseId", warehouseDropdownId);
-                            prefs.setString("warehouseName", dropdownValue);
+                            if (prefs.getString('warehouseId') == null ||
+                                prefs.getString('warehouseId') == "") {
+                              prefs.setString("warehouseName", dropdownValue);
+                              prefs.setString(
+                                  'warehouseId', mapDropdown[dropdownValue]);
+                            }
+                            // else {
+                            //   prefs.setString(
+                            //       "warehouseId", warehouseDropdownId);
+                            //   prefs.setString("warehouseName", dropdownValue);
+                            // }
                             await authService.signOut();
                             Navigator.push(
                                 context,
