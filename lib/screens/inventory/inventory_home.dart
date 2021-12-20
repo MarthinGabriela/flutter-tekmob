@@ -284,6 +284,17 @@ class _InventoryHomeState extends State<InventoryHome> {
                                                                                         editQty = (int.parse(editQty) + 1).toString();
                                                                                       });
                                                                                     },
+                                                                                  ),
+                                                                                  IconButton(
+                                                                                    icon: const Icon(Icons.check, size: 24),
+                                                                                    color: Colors.green[600],
+                                                                                    tooltip: 'Edit Package',
+                                                                                    onPressed: () {
+                                                                                      setState(() {
+                                                                                        editItemIds = ["", ""];
+                                                                                        item['quantity'] = editQty.toString();
+                                                                                      });
+                                                                                    },
                                                                                   )
                                                                                 ],
                                                                               )
