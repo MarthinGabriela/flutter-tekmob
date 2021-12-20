@@ -11,6 +11,7 @@ import 'package:tekmob/elements/package_card.dart';
 import 'package:tekmob/services/package/packageRepo.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OutboundPackage extends StatefulWidget {
   final String uid;
@@ -25,6 +26,7 @@ class OutboundPackage extends StatefulWidget {
 class _OutboundPackageState extends State<OutboundPackage> {
   final _formKey = GlobalKey<FormState>();
   final firestoreInstance = FirebaseFirestore.instance;
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   String warehouse = "";
   String title = "";
@@ -36,6 +38,9 @@ class _OutboundPackageState extends State<OutboundPackage> {
   String qty = "";
   String itemError = "You haven't add any item yet";
   bool errorSwitch = false;
+  String companyId = "";
+  String idWarehouse = "";
+  String warehouseName = "";
 
   String _scanBarcode = '';
 
@@ -43,27 +48,20 @@ class _OutboundPackageState extends State<OutboundPackage> {
   List<PackageRepo> itemBaruList = [];
   String itemName = "";
 
-  Future<void> startBarcodeScanStream() async {
-    FlutterBarcodeScanner.getBarcodeStreamReceiver(
-            '#ff6666', 'Cancel', true, ScanMode.BARCODE)!
-        .listen((barcode) => print(barcode));
-  }
+  @override
+  void didChangeDependencies() async {
+    final SharedPreferences prefs = await _prefs;
 
-  Future<void> scanQR() async {
-    String barcodeScanRes;
-    try {
-      barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-          '#ff6666', 'Cancel', true, ScanMode.QR);
-      print(barcodeScanRes);
-    } on PlatformException {
-      barcodeScanRes = 'Failed to get platform version.';
-    }
-
-    if (!mounted) return;
+    print(widget.uid);
+    print(widget.warehouseId);
 
     setState(() {
-      _scanBarcode = barcodeScanRes;
+      companyId = prefs.getString('companyId').toString();
+      idWarehouse = prefs.getString('warehouseId').toString();
+      warehouseName = prefs.getString('warehouseName').toString();
     });
+
+    super.didChangeDependencies();
   }
 
   Future<void> scanBarcodeNormal() async {
@@ -91,7 +89,7 @@ class _OutboundPackageState extends State<OutboundPackage> {
       // Get reference to Firestore collection
       var collectionRef = FirebaseFirestore.instance
           .collection('companies')
-          .doc("KQHwcd4s2YAjlH0MgZhu")
+          .doc(companyId)
           .collection('products');
 
       var doc = await collectionRef.doc(docId).get();
@@ -285,7 +283,6 @@ class _OutboundPackageState extends State<OutboundPackage> {
                           onSurface: Colors.grey,
                         ),
                         onPressed: () async {
-                          // print("ean_id = " + ean_id);
                           bool docExists = await checkIfDocExists(ean_id);
                           if (!docExists) {
                             print("masuk");
@@ -740,10 +737,7 @@ class _OutboundPackageState extends State<OutboundPackage> {
                                   });
                                 },
                                 editPackage: () async {
-                                  await showEditAddItem(
-                                      context,
-                                      // package.eanId, package.name, package.quantity,
-                                      package);
+                                  await showEditAddItem(context, package);
                                 }))
                             .toList(),
                       ),
@@ -768,9 +762,9 @@ class _OutboundPackageState extends State<OutboundPackage> {
                           // color: purpleDark,
                           child: InkWell(
                               onTap: () async {
-                                print(new DateTime.now());
                                 if (_formKey.currentState!.validate()) {
                                   if (packageList.isNotEmpty) {
+                                    print("masuk ontap");
                                     setState(() {
                                       errorSwitch = false;
                                       // itemError = "";
@@ -778,8 +772,6 @@ class _OutboundPackageState extends State<OutboundPackage> {
 
                                     List<Map<String, dynamic>> itemArray = [];
 
-                                    // print("length of packageList = " +
-                                    //     packageList.length.toString());
                                     for (int i = 0;
                                         i < packageList.length;
                                         i++) {
@@ -791,22 +783,21 @@ class _OutboundPackageState extends State<OutboundPackage> {
                                       // print("loop itemArray number" +
                                       //     (i + 1).toString());
                                     }
+                                    print("masuk ontap 2");
 
                                     var userRef = FirebaseFirestore.instance
                                         .collection('users')
                                         .doc(widget.uid);
 
                                     var userIni = await userRef.get();
-                                    var warehouseIds =
-                                        userIni['warehouseIds'][0];
 
                                     var packageId;
 
                                     await firestoreInstance
                                         .collection('companies')
-                                        .doc('KQHwcd4s2YAjlH0MgZhu')
+                                        .doc(companyId)
                                         .collection('warehouses')
-                                        .doc(warehouseIds)
+                                        .doc(idWarehouse)
                                         .collection('packages')
                                         .add({
                                       "authorFirstName": userIni["firstName"],
@@ -817,7 +808,7 @@ class _OutboundPackageState extends State<OutboundPackage> {
                                       "description": description,
                                       "status": "ready",
                                       "title": title,
-                                      "warehouseId": warehouseIds,
+                                      "warehouseId": idWarehouse,
                                       "xDim": int.parse(x),
                                       "yDim": int.parse(y),
                                       "zDim": int.parse(z),
@@ -826,11 +817,13 @@ class _OutboundPackageState extends State<OutboundPackage> {
                                       packageId = value.id;
                                     });
 
+                                    print("masuk ontap 3");
+
                                     await firestoreInstance
                                         .collection('companies')
-                                        .doc('KQHwcd4s2YAjlH0MgZhu')
+                                        .doc(companyId)
                                         .collection('warehouses')
-                                        .doc(warehouseIds)
+                                        .doc(idWarehouse)
                                         .collection('packages')
                                         .doc(packageId)
                                         .update({
@@ -843,7 +836,7 @@ class _OutboundPackageState extends State<OutboundPackage> {
                                           i++) {
                                         await firestoreInstance
                                             .collection('companies')
-                                            .doc('KQHwcd4s2YAjlH0MgZhu')
+                                            .doc(companyId)
                                             .collection('products')
                                             .doc(itemBaruList[i].eanId)
                                             .set(

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +16,7 @@ import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter/services.dart';
 import 'package:localstorage/localstorage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tekmob/elements/loading.dart';
 
 class InboundPackage extends StatefulWidget {
   final String uid;
@@ -40,27 +43,78 @@ class _InboundPackageState extends State<InboundPackage> {
   String warehouseId = '';
   bool load = false;
   var listWarehouse = [];
-  var listPackageId = [];
+  List<String> listPackageId = [];
+  List<String> listWarehouseId = [];
+  List<String> listMappingId = [];
+  var packages = [];
   var mapDropdown = new Map();
   var warehouseDropdownId;
+
+  String newCompanyId = "";
+  String newCompanyName = "";
+  String newWarehouseName = "";
+  String newWarehouseId = "";
 
   String dropdownValue = "";
 
   List<PackageRepo> packageList = [];
   List<PackageRepo> itemBaruList = [];
   String itemName = "";
+  String warehouseIdById = "";
+  var warehouses;
 
   @override
   void didChangeDependencies() async {
+    final SharedPreferences prefs = await _prefs;
+    var cartList = prefs.getStringList('cart_list');
+    var warehouseList = prefs.getStringList('warehouse_list');
+    await getAllPackages();
+    // prefs.clear();
     setState(() {
       load = true;
+      newCompanyId = prefs.getString("companyId").toString();
+      newCompanyName = prefs.getString("companyName").toString();
+      newWarehouseName = prefs.getString("warehouseName").toString();
+      newWarehouseId = prefs.getString("warehouseId").toString();
     });
-    await getData(widget.uid);
-    await getWarehouse(companyId, warehouseId);
-    await getWarehouseList(companyId);
-    print(listWarehouse);
+    await getWarehouseList(newCompanyId);
+    if (cartList != null) await getCardPackage();
+
+    // cartList?.forEach((cart) => print(cart.toString()));
+    // warehouseList?.forEach((warehouse) => print(warehouse.toString()));
+    // print(prefs.getStringList('cart_list'));
+
+    setState(() {
+      if (cartList != null) {
+        listMappingId = cartList;
+      } else {
+        listMappingId = [];
+      }
+      load = false;
+    });
+
+    // print(listWarehouse);
     super.didChangeDependencies();
-    print("masuk");
+  }
+
+  Future<void> getAllPackages() async {
+    var collection =
+        await FirebaseFirestore.instance.collectionGroup('packages').get();
+    var newColl = [];
+    // print("KONTOL");
+    // print(collection.docs);
+    // // print("huehue");
+    collection.docs.forEach((element) {
+      if (element.data()['packageId'] != null) {
+        newColl.add(element.data());
+        // print(element.data());
+      }
+      // print(element.data()['packageId']);
+    });
+
+    setState(() {
+      packages = newColl;
+    });
   }
 
   Future<void> startBarcodeScanStream() async {
@@ -71,10 +125,34 @@ class _InboundPackageState extends State<InboundPackage> {
 
   Future<void> scanQR() async {
     String barcodeScanRes;
+    final SharedPreferences prefs = await _prefs;
+    var cartList = prefs.getStringList('cart_list');
     try {
       barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
           '#ff6666', 'Cancel', true, ScanMode.QR);
+      print("that one");
       print(barcodeScanRes);
+      String newId = "";
+      packages.forEach((element) {
+        if (element['packageId'] == barcodeScanRes) {
+          newId = element['warehouseId'];
+        }
+      });
+      if (newId == "") {
+        setState(() {
+          manualPackageValidator = true;
+        });
+      } else {
+        setState(() {
+          listMappingId.add(barcodeScanRes);
+          // cartList?.add(barcodeScanRes);
+          getPackage(barcodeScanRes);
+          // prefs.setStringList('cart_list', cartList!);
+          manualPackageValidator = false;
+        });
+      }
+
+      print(listMappingId);
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }
@@ -88,9 +166,13 @@ class _InboundPackageState extends State<InboundPackage> {
 
   Future<void> scanBarcodeNormal() async {
     String barcodeScanRes;
+    final SharedPreferences prefs = await _prefs;
+    var cartList = prefs.getStringList('cart_list');
+    var warehouseList = prefs.getStringList('warehouse_list');
     try {
       barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
           '#ff6666', 'Cancel', true, ScanMode.BARCODE);
+      print("this one?");
       print(barcodeScanRes);
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
@@ -103,31 +185,6 @@ class _InboundPackageState extends State<InboundPackage> {
     });
   }
 
-  Future<void> getData(id) async {
-    var collection = FirebaseFirestore.instance.collection('users');
-    var docSnapshot = await collection.doc(id).get();
-    if (docSnapshot.exists) {
-      Map<String, dynamic>? data = docSnapshot.data();
-      var warehouseValue = data?['warehouseIds'][0];
-      var companyValue = data?['companyId'];
-      setState(() {
-        warehouseId = warehouseValue;
-        companyId = companyValue;
-      });
-    }
-  }
-
-  Future<void> getWarehouse(companyId, warehouseId) async {
-    var collection = await FirebaseFirestore.instance
-        .collection('companies')
-        .doc(companyId)
-        .collection('warehouses')
-        .doc(warehouseId)
-        .get();
-    Map<String, dynamic>? data = collection.data();
-    setState(() => warehouse = data?["name"]);
-  }
-
   Future<void> getWarehouseList(companyId) async {
     QuerySnapshot collection = await FirebaseFirestore.instance
         .collection('companies')
@@ -137,48 +194,53 @@ class _InboundPackageState extends State<InboundPackage> {
     var listdocs = collection.docs;
     for (int i = 0; i < listdocs.length; i++) {
       var data = listdocs[i];
-      if (data['name'] == warehouse) {
+      if (data['name'] == newWarehouseName) {
         listdocs.remove(data);
       }
       setState(() {
         listWarehouse = listdocs;
         dropdownValue = listWarehouse[0]['name'];
+        print("dropdown value = " + dropdownValue);
       });
     }
   }
 
-  Future<void> getPackage(warehouseId, packageId) async {
-    var collection = await FirebaseFirestore.instance
-        .collection('companies')
-        .doc(companyId)
-        .collection('warehouses')
-        .doc(warehouseId)
-        .collection('packages')
-        .doc(packageId)
-        .get();
-    Map<String, dynamic>? data = collection.data();
-    if (data != null) {
-      Map<String, dynamic>? newData = {
-        "packageId": data['packageId'],
-        "title": data['title'],
-        "warehouseId": data['warehouseId'],
-        "companyId": companyId,
-        "items": data['items'],
-        "createdAt": data['createdAt'].toDate().toString(),
-        "warehouse": dropdownValue.toString()
-      };
-      listPackageId.add(data['packageId'].toString());
-      packageStorage.setItem(data['packageId'], newData);
-      // packageStorage.setItem("data", "boobies are the best");
-      print("hasil localstorage = ");
-      print(packageStorage.getItem(data['packageId']));
-      print(packageStorage);
+  Future<void> getPackage(packageId) async {
+    final SharedPreferences prefs = await _prefs;
+    var cartList = prefs.getStringList('cart_list');
+    var warehouseList = prefs.getStringList('warehouse_list');
+    var newPack;
+
+    if (cartList != null) {
+      cartList.forEach((cart) => listPackageId.add(cart.toString()));
+      warehouseList
+          ?.forEach((warehouse) => listWarehouseId.add(warehouse.toString()));
+    }
+
+    var collection =
+        await FirebaseFirestore.instance.collectionGroup("packages").get();
+
+    print("kontol");
+    print(collection);
+    collection.docs.forEach((element) {
+      if (element.data()['packageId'] == packageId) {
+        newPack = element.data();
+      }
+    });
+    // Map<String, dynamic>? data = collection.data();
+    // var data = null;
+    // print(data);
+    if (newPack != null) {
+      print("masuk not null");
+      listPackageId.add(newPack['packageId'].toString());
+      listWarehouseId.add(newPack['warehouseId'].toString());
+      prefs.setStringList("cart_list", listPackageId);
+      prefs.setStringList("warehouse_list", listWarehouseId);
+
       setState(() {
         manualPackageValidator = false;
-        // LANJUTIN MANUAL COEG,
-        // tambahin dropdown warehouse
-        // bikin caard package??
-        // localstorage
+        listPackageId = [];
+        listWarehouseId = [];
       });
     } else {
       setState(() {
@@ -187,13 +249,66 @@ class _InboundPackageState extends State<InboundPackage> {
     }
   }
 
+  Future<void> getCardPackage() async {
+    print("masuk getcardpackage");
+    final SharedPreferences prefs = await _prefs;
+    // prefs.clear();
+    var cartList = prefs.getStringList('cart_list');
+    var warehouseList = prefs.getStringList('warehouse_list');
+    int? size = cartList?.length;
+
+    for (int i = 0; i < size!; i++) {
+      var collection = await FirebaseFirestore.instance
+          .collection('companies')
+          .doc(newCompanyId)
+          .collection('warehouses')
+          .doc(warehouseList![i])
+          .collection('packages')
+          .doc(cartList![i])
+          .get();
+      Map<String, dynamic>? data = collection.data();
+
+      var nameCollection = await FirebaseFirestore.instance
+          .collection('companies')
+          .doc(newCompanyId)
+          .collection('warehouses')
+          .doc(data!['warehouseId'])
+          .get();
+
+      Map<String, dynamic>? newName = nameCollection.data();
+
+      Map<String, dynamic>? newData = {
+        "packageId": data['packageId'],
+        "title": data['title'],
+        "warehouseId": data['warehouseId'],
+        "companyId": newCompanyId,
+        "items": data['items'],
+        "description": data['description'],
+        "createdAt": data['createdAt'].toDate().toString(),
+        "warehouse": newName!['name']
+      };
+
+      packageStorage.setItem(data['packageId'], newData);
+      // print("hasil localstorage = ");
+      // print(packageStorage.getItem(data['packageId']));
+    }
+
+    print("selesai getcardpackage");
+  }
+
   Future<bool> checkIfDocExists(String docId) async {
     try {
       // Get reference to Firestore collection
+      // var newId;
+      // packages.forEach((element) {
+      //   if (element['packageId'] == docId) {
+      //     newId = element['warehouseId'];
+      //   }
+      // });
       var collectionRef = FirebaseFirestore.instance
           .collection('companies')
-          .doc("KQHwcd4s2YAjlH0MgZhu")
-          .collection('products');
+          .doc(newCompanyId)
+          .collection('warehouses');
 
       var doc = await collectionRef.doc(docId).get();
       if (doc.exists) itemName = doc['name'];
@@ -279,27 +394,21 @@ class _InboundPackageState extends State<InboundPackage> {
                               onSurface: Colors.grey,
                             ),
                             onPressed: () async {
-                              await getPackage(
-                                  warehouseDropdownId, manualPackageId);
+                              await getPackage(manualPackageId);
                               if (manualPackageValidator == true) {
-                                // Navigator.of(context).pop();
-                              }
-                              // setState(() {
-                              //   PackageRepo newpack = PackageRepo(
-                              //       eanId: ean_id,
-                              //       quantity: int.parse(qty),
-                              //       name: itemName);
-                              //   packageList.add(newpack);
-                              //   itemBaruList.add(newpack);
-                              //   errorSwitch = false;
-                              // });
+                                Navigator.of(context).pop();
+                              } else {
+                                print("masuk else abis get package");
+                                final SharedPreferences prefs = await _prefs;
+                                var cartList = prefs.getStringList('cart_list');
+                                if (cartList != null) {
+                                  setState(() {
+                                    listMappingId = cartList;
+                                  });
+                                }
 
-                              // setState(() {
-                              //   ean_id = "";
-                              //   qty = "";
-                              //   itemName = "";
-                              // });
-                              Navigator.of(context).pop();
+                                Navigator.of(context).pop();
+                              }
                             },
                           )
                         ])),
@@ -335,7 +444,6 @@ class _InboundPackageState extends State<InboundPackage> {
                                 // color: purpleDark,
                                 child: InkWell(
                                     onTap: () async {
-                                      print("tambil baru");
                                       await scanQR();
                                       Navigator.pop(context);
                                     },
@@ -402,7 +510,7 @@ class _InboundPackageState extends State<InboundPackage> {
               ),
               Container(
                 margin: EdgeInsets.fromLTRB(32, 0, 0, 0),
-                child: Text("Cart",
+                child: Text("Inbound",
                     style: header_3.copyWith(
                         color: purpleDark, fontFamily: 'QuickSand')),
               ),
@@ -410,25 +518,34 @@ class _InboundPackageState extends State<InboundPackage> {
                 height: 32,
               ),
               Container(
-                child: Column(
-                  children: listPackageId
-                      .map((package) => PackageCart(
-                          packageData:
-                              packageStorage.getItem(package.toString())))
-                      .toList(),
-                ),
+                child: load == true
+                    ? Loading()
+                    : Column(
+                        children: listMappingId
+                            .map((package) => PackageCart(
+                                uid: widget.uid,
+                                // packageData: packageStorage.getItem(package.toString()),
+                                packageData: packages.firstWhere((element) =>
+                                    element["packageId"] == package)))
+                            .toList(),
+                      ),
               ),
-              Container(
-                  padding: EdgeInsets.fromLTRB(32, 0, 32, 0),
-                  child: Ink(
-                    // color: purpleDark,
-                    child: InkWell(
-                        onTap: () async {
-                          await showAddPackage(context);
-                        },
-                        child: WideButton(
-                            buttonText: "+ Add Package", colorSide: "Dark")),
-                  )),
+              load == true
+                  ? SizedBox(
+                      height: 16,
+                    )
+                  : Container(
+                      padding: EdgeInsets.fromLTRB(32, 16, 32, 0),
+                      child: Ink(
+                        // color: purpleDark,
+                        child: InkWell(
+                            onTap: () async {
+                              await showAddPackage(context);
+                            },
+                            child: WideButton(
+                                buttonText: "+ Add Package",
+                                colorSide: "Dark")),
+                      )),
               manualPackageValidator == true
                   ? Center(
                       child: Container(
@@ -439,37 +556,6 @@ class _InboundPackageState extends State<InboundPackage> {
                   : SizedBox(
                       height: 32,
                     ),
-              Container(
-                  padding: EdgeInsets.fromLTRB(32, 0, 32, 0),
-                  child: Ink(
-                    // color: purpleDark,
-                    child: InkWell(
-                        onTap: () async {
-                          if (listPackageId.isEmpty) {
-                            print("empty package");
-                          } else {
-                            final SharedPreferences prefs = await _prefs;
-                            List<String>? tempList = [];
-                            if (prefs.getStringList('cart_list') != null) {
-                              print('if pertama');
-                              tempList = prefs.getStringList('cart_list');
-                            }
-                            // else {
-                            //   print('else null');
-                            // }
-                            tempList?.add(listPackageId.join(','));
-                            prefs.setStringList("cart_list", tempList!);
-                            print(prefs.get("cart_list"));
-                            setState(() {
-                              listPackageId = [];
-                            });
-                            // prefs.clear();
-                            Navigator.of(context).pop();
-                          }
-                        },
-                        child: WideButton(
-                            buttonText: "Save Cart", colorSide: "Not Dark")),
-                  )),
             ],
           ),
         )),

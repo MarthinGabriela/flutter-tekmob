@@ -13,6 +13,8 @@ import 'package:tekmob/services/package/packageListRepo.dart';
 import 'package:tekmob/services/package/packageRepo.dart';
 import 'package:tekmob/screens/inbound/inbound_addpackage.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class OutboundHome extends StatefulWidget {
   final String uid;
 
@@ -25,6 +27,7 @@ class OutboundHome extends StatefulWidget {
 class _OutboundHomeState extends State<OutboundHome> {
   final _formKey = GlobalKey<FormState>();
   final firestoreInstance = FirebaseFirestore.instance;
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   List<PackageList> listOfPackage = [];
 
@@ -41,21 +44,27 @@ class _OutboundHomeState extends State<OutboundHome> {
   String dropdownValue = "Choose a warehouse";
   String destinationId = "";
   String description = "";
+  String companyId = "";
   bool load = false;
   bool errorSwitch = false;
   var listWarehouse = [];
 
   @override
   void didChangeDependencies() async {
+    final SharedPreferences prefs = await _prefs;
+
     setState(() {
       load = true;
+      companyId = prefs.getString('companyId').toString();
+      idWarehouse = prefs.getString('warehouseId').toString();
+      warehouse = prefs.getString('warehouseName').toString();
     });
-    await getData(widget.uid);
-    await getWarehouse(idWarehouse);
+
+    print("warehouse = " + warehouse);
     super.didChangeDependencies();
     QuerySnapshot collection = await FirebaseFirestore.instance
         .collection('companies')
-        .doc("KQHwcd4s2YAjlH0MgZhu")
+        .doc(companyId)
         .collection('warehouses')
         .get();
     var listdocs = collection.docs;
@@ -64,7 +73,7 @@ class _OutboundHomeState extends State<OutboundHome> {
       if (data['name'] == warehouse) {
         listdocs.remove(data);
       }
-      print(data['name']);
+      // print(data['name']);
       // print(data.id);
     }
 
@@ -75,43 +84,22 @@ class _OutboundHomeState extends State<OutboundHome> {
     });
   }
 
-  Future<void> getData(id) async {
-    var collection = FirebaseFirestore.instance.collection('users');
-    var docSnapshot = await collection.doc(id).get();
-    if (docSnapshot.exists) {
-      Map<String, dynamic>? data = docSnapshot.data();
-      var value = data?['warehouseIds'][0];
-      setState(() => idWarehouse = value);
-    }
-  }
-
   Future<String> getWarehouseByName(name) async {
     String warehouseTargetId = "";
     QuerySnapshot collection = await FirebaseFirestore.instance
         .collection('companies')
-        .doc("KQHwcd4s2YAjlH0MgZhu")
+        .doc(companyId)
         .collection('warehouses')
         .get();
     var listdocs = collection.docs;
     for (int i = 0; i < listdocs.length; i++) {
       var data = listdocs[i];
       if (data['name'] == name) {
-        warehouseTargetId = data['name'];
+        warehouseTargetId = data.id;
       }
     }
 
     return warehouseTargetId;
-  }
-
-  Future<void> getWarehouse(id) async {
-    var collection = await FirebaseFirestore.instance
-        .collection('companies')
-        .doc("KQHwcd4s2YAjlH0MgZhu")
-        .collection('warehouses')
-        .doc(id)
-        .get();
-    Map<String, dynamic>? data = collection.data();
-    setState(() => warehouse = data?["name"]);
   }
 
   Future<bool> getItemName(String eanId) async {
@@ -119,11 +107,13 @@ class _OutboundHomeState extends State<OutboundHome> {
       // Get reference to Firestore collection
       var collectionRef = FirebaseFirestore.instance
           .collection('companies')
-          .doc("KQHwcd4s2YAjlH0MgZhu")
+          .doc(companyId)
           .collection('products');
 
       var doc = await collectionRef.doc(eanId).get();
-      if (doc.exists) itemName = doc['name'];
+      if (doc.exists) {
+        itemName = doc['name'];
+      }
       return doc.exists;
     } catch (e) {
       throw e;
@@ -170,9 +160,6 @@ class _OutboundHomeState extends State<OutboundHome> {
                                 // color: purpleDark,
                                 child: InkWell(
                                     onTap: () async {
-                                      // print("1. " + stringofPackage);
-                                      // await getData(widget.uid);
-                                      // await getWarehouse(idWarehouse);
                                       Navigator.pop(context);
                                       final res = await Navigator.of(context)
                                           .push(MaterialPageRoute(
@@ -190,7 +177,7 @@ class _OutboundHomeState extends State<OutboundHome> {
                                       var collectionRef = FirebaseFirestore
                                           .instance
                                           .collection('companies')
-                                          .doc("KQHwcd4s2YAjlH0MgZhu")
+                                          .doc(companyId)
                                           .collection('warehouses')
                                           .doc(idWarehouse)
                                           .collection('packages');
@@ -211,6 +198,8 @@ class _OutboundHomeState extends State<OutboundHome> {
                                             i++) {
                                           if (!(splittedSOP[i] == "cancel")) {
                                             List<PackageRepo> listItem = [];
+                                            print("masuk3");
+                                            print(splittedSOP[i]);
 
                                             var doc = await collectionRef
                                                 .doc(splittedSOP[i])
@@ -459,13 +448,14 @@ class _OutboundHomeState extends State<OutboundHome> {
                                                 //     userIni['warehouseIds'][0];
 
                                                 var deliveryId;
+
                                                 String warehouseTargetId =
                                                     await getWarehouseByName(
                                                         dropdownValue);
 
                                                 await firestoreInstance
                                                     .collection('companies')
-                                                    .doc('KQHwcd4s2YAjlH0MgZhu')
+                                                    .doc(companyId)
                                                     .collection('deliveries')
                                                     .add({
                                                   "authorFirstName":
@@ -489,7 +479,7 @@ class _OutboundHomeState extends State<OutboundHome> {
 
                                                 await firestoreInstance
                                                     .collection('companies')
-                                                    .doc('KQHwcd4s2YAjlH0MgZhu')
+                                                    .doc(companyId)
                                                     .collection('deliveries')
                                                     .doc(deliveryId)
                                                     .update({
@@ -501,8 +491,7 @@ class _OutboundHomeState extends State<OutboundHome> {
                                                     i++) {
                                                   await firestoreInstance
                                                       .collection('companies')
-                                                      .doc(
-                                                          'KQHwcd4s2YAjlH0MgZhu')
+                                                      .doc(companyId)
                                                       .collection('warehouses')
                                                       .doc(idWarehouse)
                                                       .collection('packages')
@@ -514,30 +503,10 @@ class _OutboundHomeState extends State<OutboundHome> {
                                                 setState(() {
                                                   load = false;
                                                 });
-                                                // if (itemBaruList.isNotEmpty) {
-                                                //   for (int i = 0;
-                                                //       i < itemBaruList.length;
-                                                //       i++) {
-                                                //     await firestoreInstance
-                                                //         .collection('companies')
-                                                //         .doc(
-                                                //             'KQHwcd4s2YAjlH0MgZhu')
-                                                //         .collection('products')
-                                                //         .doc(itemBaruList[i]
-                                                //             .eanId)
-                                                //         .set({
-                                                //       "name":
-                                                //           itemBaruList[i].name
-                                                //     });
-                                                //   }
-                                                // }
                                                 Navigator.pop(context);
                                               } else {
                                                 setState(() {
                                                   errorSwitch = true;
-                                                  // itemError = "afafsadaffsfa";
-                                                  // itemError =
-                                                  //     "You haven't add any item yet";
                                                 });
                                               }
                                             }
